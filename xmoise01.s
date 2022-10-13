@@ -15,7 +15,7 @@ params_sys5:    .space  8   ; misto pro ulozeni adresy pocatku
 ; CODE SEGMENT
                 .text
                 ; xmoise01-r2-r16-r15-r23-r0-r4
-                ; Raw stalls: 84 -> 83 -> 77 -> 65 -> 56 -> 47
+                ; Raw stalls: 84 -> 83 -> 77 -> 65 -> 56 -> 45 -> 28
 main:
                 ; Intro
                 ; Some code may look strange. For example, computing
@@ -31,21 +31,19 @@ main:
                 ;       used to check if character is letter or number.
                 ; r16   stores index of current character in login string
                 ; r23   stores 'm' and 'o' symbols to add or substract them from login character
-                daddi   r23, r0, 0x0F
-                daddi   r15, r0, 0x0D
+                daddi   r15, r0, cipher
                 lbu     r4, 0(r0)   ; read first login character
 
-                ; Set r15 to 'm' and r23 'o' symbols
-                sb      r23, 17(r0)
-                daddi   r23, r0, 0x02
-                sb      r15, 16(r0)
-                daddi   r15, r0, 0x61
+                sb      r15, params_sys5(r0)
+                xor     r15, r15, r15
 
                 ; begin while(*login[r4] < 97)
                 start_while:
-                sltu    r2, r4, r15  ; *login[r4] < 97
-                mfhi    r15
+                slti    r2, r4, 97  ; *login[r4] < 97
+                movz    r23, r16, r0
+                andi    r15, r16, 0x01
                 bnez    r2, end_while
+                daddi   r23, r23, 1
                 ; begin loop instructions
                     ; begin if(r16 % 2 == 0) symbol_plus(); else symbol_minus();
                     beqz    r15, symbol_plus
@@ -53,45 +51,35 @@ main:
                     b       end_if
 
                     symbol_plus:
-                        lb      r23, 16(r0)
-                        daddi   r15, r0, 0x7A
                         ; *login[r4] += 'm';
-                        add     r4, r4, r23
+                        daddi   r4, r4, 13
                         ; if(*login[r4] > 122) *login[r4] -= 26;
-                        sltu    r2, r15, r4
-                        daddi   r15, r0, 0x1A
-                        bnez    r2, symbol_minus_26
+                        slti    r2, r4, 122
+                        beqz    r2, symbol_minus_26
                         b       end_if
                         symbol_minus_26:
-                            sub     r4, r4, r15
+                            daddi     r4, r4, -26
                         b       end_if
                     symbol_minus:
-                        lb      r23, 17(r0)
-                        daddi   r15, r0, 0x61
                         ; *login[r4] -= 'o';
-                        sub     r4, r4, r23
+                        daddi     r4, r4, -15
                         ; if(*login[r4] < 97) *login[r4] += 26;
-                        sltu    r2, r4, r15
-                        daddi   r15, r0, 0x1A
+                        slti    r2, r4, 97
                         bnez    r2, symbol_plus_26
                         b       end_if
                         symbol_plus_26:
-                            add     r4, r4, r15
+                            daddi     r4, r4, 26
                         b       end_if
                     end_if:
-                    daddi   r15, r0, 0x61
-                    daddi   r23, r0, 0x02
+                    sb      r4, cipher(r16)
 
-                    sb      r4, 0(r16)
-                    daddi   r16, r16, 1   ; login[r4] = login[r4] + 8
-                    div     r16, r23
-
-                    lbu     r4, 0(r16)    ; reading next character
+                    lbu     r4, login(r23)    ; reading next character
+                    movz    r16, r23, r0
                     b start_while
                 ; end loop instructions
                 end_while:
 
-                daddi   r4, r0, login
+                daddi   r4, r0, cipher
                 jal     print_string
                 syscall 0   ; halt
 
