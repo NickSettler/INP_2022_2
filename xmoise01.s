@@ -30,7 +30,7 @@ main:
                 ; r15   stores constant numbers for comparing with login character.
                 ;       used to check if character is letter or number.
                 ; r16   stores index of current character in login string
-                ; r23   stores 'm' and 'o' symbols to add or substract them from login character
+                ; r23   stores 'm' and 'o' symbols to add or subtract them from login character
                 daddi   r15, r0, cipher
                 lbu     r4, 0(r0)   ; read first login character
 
