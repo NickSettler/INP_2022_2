@@ -15,7 +15,7 @@ params_sys5:    .space  8   ; misto pro ulozeni adresy pocatku
 ; CODE SEGMENT
                 .text
                 ; xmoise01-r2-r16-r15-r23-r0-r4
-                ; Raw stalls: 84 -> 83 -> 77 -> 65 -> 56 -> 45 -> 28
+                ; Raw stalls: 84 -> 83 -> 77 -> 65 -> 56 -> 45 -> 27
 main:
                 ; Intro
                 ; Some code may look strange. For example, computing
